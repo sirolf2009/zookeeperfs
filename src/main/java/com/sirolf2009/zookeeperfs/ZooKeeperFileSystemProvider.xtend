@@ -10,6 +10,7 @@ import java.nio.file.LinkOption
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.ProviderMismatchException
+import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileAttributeView
@@ -17,10 +18,7 @@ import java.nio.file.spi.FileSystemProvider
 import java.util.HashMap
 import java.util.Map
 import java.util.Set
-import java.nio.file.StandardCopyOption
 import org.apache.zookeeper.CreateMode
-import java.nio.channels.SeekableByteChannel
-import java.nio.ByteBuffer
 
 class ZooKeeperFileSystemProvider extends FileSystemProvider {
 	
@@ -92,11 +90,16 @@ class ZooKeeperFileSystemProvider extends FileSystemProvider {
 	}
 	
 	override isSameFile(Path path, Path path2) throws IOException {
-		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+		path.checkPath().toString().equals(path2.checkPath().toString())
 	}
 	
 	override move(Path source, Path target, CopyOption... options) throws IOException {
-		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+		move(source.checkPath(), target.checkPath(), options)
+	}
+	
+	def move(ZooKeeperPath source, ZooKeeperPath target, CopyOption... options) throws IOException {
+		copy(source, target, options)
+		delete(source)
 	}
 	
 	override newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
@@ -105,39 +108,7 @@ class ZooKeeperFileSystemProvider extends FileSystemProvider {
 	
 	def newByteChannel(ZooKeeperPath path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
 		val data = path.getZooKeeper().getData(path.toString(), false, null)
-		return new SeekableByteChannel() {
-			
-			override position() throws IOException {
-				throw new UnsupportedOperationException("TODO: auto-generated method stub")
-			}
-			
-			override position(long newPosition) throws IOException {
-				throw new UnsupportedOperationException("TODO: auto-generated method stub")
-			}
-			
-			override read(ByteBuffer dst) throws IOException {
-				throw new UnsupportedOperationException("TODO: auto-generated method stub")
-			}
-			
-			override size() throws IOException {
-				throw new UnsupportedOperationException("TODO: auto-generated method stub")
-			}
-			
-			override truncate(long size) throws IOException {
-				throw new UnsupportedOperationException("TODO: auto-generated method stub")
-			}
-			
-			override write(ByteBuffer src) throws IOException {
-				throw new UnsupportedOperationException("TODO: auto-generated method stub")
-			}
-			
-			override close() throws IOException {
-			}
-			
-			override isOpen() {
-				return true
-			}
-		}
+		return new ZookeeperSeekableByteChannel(path.getZooKeeper(), path.toString(), data)
 	}
 	
 	override newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException {
