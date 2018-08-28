@@ -10,15 +10,22 @@ class ZookeeperSeekableByteChannel extends SeekableInMemoryByteChannel {
 	
 	val ZooKeeper zookeeper
 	val String path
+	val List<Byte> originalContent
 	
-	new(ZooKeeper zookeeper, String path, List<Byte> content) {
+	new(ZooKeeper zookeeper, String path, List<Byte> originalContent) {
 		this.zookeeper = zookeeper
 		this.path = path
-		write(ByteBuffer.wrap(content))
+		this.originalContent = originalContent
+		if(originalContent !== null) {
+			write(ByteBuffer.wrap(originalContent))
+		}
+		position(0)
 	}
 	
 	override close() throws IOException {
-		zookeeper.setData(path, getContents(), -1)
+		if(!originalContent.equals(getContents().toList())) {
+			zookeeper.setData(path, getContents(), -1)
+		}
 		super.close()
 	}
 

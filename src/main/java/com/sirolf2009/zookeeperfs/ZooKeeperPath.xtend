@@ -8,8 +8,9 @@ import java.nio.file.WatchEvent.Modifier
 import java.nio.file.WatchService
 import java.util.List
 import java.nio.file.ProviderMismatchException
+import org.eclipse.xtend.lib.annotations.Accessors
 
-class ZooKeeperPath implements Path {
+@Accessors class ZooKeeperPath implements Path {
 
 	val ZooKeeperFileSystem fileSystem
 	val String path
@@ -146,6 +147,10 @@ class ZooKeeperPath implements Path {
 	
 	override toString() {
 		return path
+	}
+	
+	def getZKFileSystem() {
+		return fileSystem
 	}
 	
 	def getZooKeeper() {
